@@ -48,12 +48,13 @@ class Preprocess:
 
         if not os.path.exists(self.args.asset_dir):
             os.makedirs(self.args.asset_dir)
-
+        
         for col in cate_cols:
             le = LabelEncoder()
             if is_train:
                 # For UNKNOWN class
                 a = df[col].unique().tolist() + ["unknown"]
+                # print(a)
                 le.fit(a)
                 self.__save_labels(le, col)
             else:
