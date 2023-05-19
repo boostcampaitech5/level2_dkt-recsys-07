@@ -22,7 +22,8 @@ logger = get_logger(logger_conf=logging_conf)
 def run(args,
         train_data: np.ndarray,
         valid_data: np.ndarray,
-        model: nn.Module):
+        model: nn.Module,
+        fold=None):
     train_loader, valid_loader = get_loaders(args=args, train=train_data, valid=valid_data)
 
     # For warmup scheduler which uses step interval
@@ -61,7 +62,7 @@ def run(args,
             save_checkpoint(state={"epoch": epoch + 1,
                                    "state_dict": model_to_save.state_dict()},
                             model_dir=args.model_dir,
-                            model_filename="best_model.pt")
+                            model_filename= "best_model.pt" if args.kfold == 0 else f"best_model_{fold}fold.pt")
             early_stopping_counter = 0
         else:
             early_stopping_counter += 1
