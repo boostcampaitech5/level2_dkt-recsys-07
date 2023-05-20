@@ -15,6 +15,7 @@ def convert_string2datetime(s: str):
 
 def fe(df):
     ## 문자열로 인식되는 Timestamp의 타입을 datetime으로 변경하기. 
+    print('Timestamp feature engineering start ..')
     df["Timestamp"] = df["Timestamp"].apply(convert_string2datetime) # string type to datetime type
 
 
@@ -61,8 +62,8 @@ def fe(df):
 
     ## 전체적인 시간정보를 나타내는 Timestamp는 int형으로 변환.
     df["Timestamp"] = df["Timestamp"].apply(convert_time2timestamp) # datetime to timestamp
-
-
+    print(' Done.')
+    print('TestID feature engineering start ..',end='')
     ## 시험지의 평균 정답률, 정답 개수, 표준편차
     correct_t = df[df['userID'].shift(1) == df['userID']].groupby(['testId'])['answerCode'].agg(['mean', 'sum','std'])
     correct_t.columns = ["test_ans_mean", 'test_ans_sum','test_ans_std']
@@ -75,7 +76,7 @@ def fe(df):
 
 
     ## 시험지 대분류(test_type) 생성
-    df['test_type'] = df['testId'].apply(lambda x:x[2])
+    df['test_type'] = df['testId'].apply(lambda x:int(x[2]))
 
     ## 시험지 대분류별 정답률, 정답 개수, 표준편차
     correct_type = df[df['userID'].shift(1) == df['userID']].groupby(['test_type'])['answerCode'].agg(['mean', 'sum','std'])
@@ -105,7 +106,7 @@ def fe(df):
     ## 시험지 노출 횟수
     df['test_total_answer'] = df.groupby('testId')['answerCode'].cumcount()
 
-
+    print('TagID feature engineering start ..',end='')
     ## tag의 평균 정답률, 정답 총합, 표준편차
     correct_k = df[df['userID'].shift(1) == df['userID']].groupby(['KnowledgeTag'])['answerCode'].agg(['mean', 'sum','std'])
     correct_k.columns = ["tag_ans_mean", 'tag_ans_sum','tag_ans_std']
@@ -125,8 +126,8 @@ def fe(df):
 
     ## 태그 노출 횟수
     df['tag_total_answer'] = df.groupby('KnowledgeTag')['answerCode'].cumcount()
-
-
+    print(' Done.')
+    print('UserID feature engineering start ..',end='')
     #유저들의 문제 풀이수, 정답 수, 정답률을 시간순으로 누적해서 계산
     df['user_ans_1'] = df[df['userID'].shift(1) == df['userID']].groupby('userID')['answerCode'].transform(lambda x:x.cumsum().shift(1))
     df['user_total_ans'] = df.groupby('userID')['answerCode'].cumcount()
@@ -145,11 +146,12 @@ def fe(df):
     df['user_lvl'] = df.user_tag_lvl_mean + df.user_test_lvl_mean
 
 
-    df['item_ans_1'] = df[df['userID'].shift(1) == df['userID']].groupby('assessmentItemID')['answerCode'].cumsum()
-    df['item_total_ans'] = df.groupby('assessmentItemID')['answerCode'].cumcount() + 1
+    df['item_ans_1'] = df[df['userID'].shift(1) == df['userID']].groupby('assessmentItemID')['answerCode'].transform(lambda x:x.cumsum().shift(1))
+    df['item_total_ans'] = df.groupby('assessmentItemID')['answerCode'].cumcount()
     df['item_acc'] = df['item_ans_1']/df['item_total_ans']
-
     
+    print(' Done.')
+    print('ItemID feature engineering start ..',end='')
     ## item의 평균 정답률, 정답 총합, 표준편차
     correct_a = df.groupby(['assessmentItemID'])['answerCode'].agg(['mean', 'sum','std'])
     correct_a.columns = ["item_ans_mean", 'item_ans_sum','item_ans_std']
@@ -160,15 +162,15 @@ def fe(df):
     time_a.columns = ["item_time_mean", 'item_time_std']
     df = pd.merge(df, time_a, on=['assessmentItemID'], how="left")
 
-    ## item 난이도
-    df['item_lvl'] = df['item_time_mean'] / df['item_ans_mean']
-    # 범주화
-    item_cat_num = 10
-    df['item_lvl_cat'] = pd.qcut(df['item_lvl'],item_cat_num,labels=[i for i in range(item_cat_num)])
+    # ## item 난이도
+    # df['item_lvl'] = df['item_time_mean'] / df['item_ans_mean']
+    # # 범주화
+    # item_cat_num = 10
+    # df['item_lvl_cat'] = pd.qcut(df['item_lvl'],item_cat_num,labels=[i for i in range(item_cat_num)])
 
     ## item 노출 횟수
     df['item_total_answer'] = df.groupby('assessmentItemID')['answerCode'].cumcount()
     
     df = df.fillna(0)
-    
+    print(' Done.')
     return df
