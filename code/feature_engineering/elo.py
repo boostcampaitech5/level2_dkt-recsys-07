@@ -51,7 +51,6 @@ student_df = pd.DataFrame.from_dict(data=student_rate, orient='index').rename(co
 
 train['student_rate'] = train.userID.apply(lambda x:student_rate[x])
 train['problem_rate'] = train.assessmentItemID.apply(lambda x:problem_rate[x])
-train['log_student_rate'] = train.student_rate.apply(lambda x:log(x))
 
 def rate(arr):  # 수능 등급 기준과 동일하게 0.5시그마 기준으로 1~9등급 나누기
     m, std = arr.mean(), arr.std()
@@ -60,8 +59,8 @@ def rate(arr):  # 수능 등급 기준과 동일하게 0.5시그마 기준으로
     return tarr.apply(lambda x : min(max(x,1), 9))
 
 #학생별로 문제를 푼 수가 달라서 학생만 모아둔 df를 따로 관리하여 추가
-problem_df['problem_grade'] = rate(problem_df['problem_rate'])
-student_df['student_grade'] = rate(student_df['student_rate'])
+problem_df['problem_grade'] = rate(problem_df['problem_rate'].apply(lambda x:log(x)))
+student_df['student_grade'] = rate(student_df['student_rate'].apply(lambda x:log(x)))
 train = pd.merge(train, problem_df, how='left', on='problem_rate')
 train = pd.merge(train, student_df, how='left', on='student_rate')
 
