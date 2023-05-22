@@ -83,7 +83,7 @@ class Preprocess:
         # TODO: Fill in if needed
         return df
 
-    def load_data_from_file(self, file_name: str, is_train: bool = True) -> np.ndarray:
+    def load_data_from_file(self, file_name: str, is_train: bool = True, grouping: bool = True) -> np.ndarray:
         csv_file_path = os.path.join(self.args.data_dir, file_name)
         df = pd.read_csv(csv_file_path)  # , nrows=100000)
         df = self.__feature_engineering(df)
@@ -102,6 +102,10 @@ class Preprocess:
         )
 
         df = df.sort_values(by=["userID", "Timestamp"], axis=0)
+        
+        if not grouping:     # not group by "userID" / return raw dataframe
+            return df
+        
         columns = ["userID", "assessmentItemID", "testId", "answerCode", "KnowledgeTag"]
         group = (
             df[columns]
