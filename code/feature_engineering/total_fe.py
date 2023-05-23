@@ -15,7 +15,7 @@ def convert_string2datetime(s: str):
 
 def fe(df):
     ## 문자열로 인식되는 Timestamp의 타입을 datetime으로 변경하기. 
-    print('Timestamp feature engineering start ..')
+    print('Timestamp feature engineering start ..',end='')
     df["Timestamp"] = df["Timestamp"].apply(convert_string2datetime) # string type to datetime type
 
 
@@ -105,7 +105,7 @@ def fe(df):
 
     ## 시험지 노출 횟수
     df['test_total_answer'] = df.groupby('testId')['answerCode'].cumcount()
-
+    print(' Done.')
     print('TagID feature engineering start ..',end='')
     ## tag의 평균 정답률, 정답 총합, 표준편차
     correct_k = df[df['userID'].shift(1) == df['userID']].groupby(['KnowledgeTag'])['answerCode'].agg(['mean', 'sum','std'])
@@ -170,7 +170,63 @@ def fe(df):
 
     ## item 노출 횟수
     df['item_total_answer'] = df.groupby('assessmentItemID')['answerCode'].cumcount()
-    
     df = df.fillna(0)
     print(' Done.')
+    return df
+
+
+def elo_fe(K,df):
+    ### ELO
+    problems = df.assessmentItemID.unique()
+    students = df.userID.unique()
+
+    # rate는 4000으로 시작.
+    problem_rate = {problem:4000 for problem in problems}
+    student_rate = {student:4000 for student in students}
+    elo_df = df[['userID', 'assessmentItemID', 'answerCode']]
+
+    # ELO Rating function
+    def win_rate(p_op, p_me): # 문제를 풀었을 때 얻는 rating 점수
+        return 1/(10**((p_op-p_me)/100)+1) 
+
+    def changed_score(K, p_op, p_me, result):
+        '''
+        params
+            - K : Rating 변경 비율
+            - p_op : assessmentID (문제)
+            - p_me : UserID (사용자)
+            - result : answerCode (문제 정오답 여부)
+        variable
+            - game_percent : 풀이로부터 변경되는 Rating 값.
+            - next_op : 문제의 갱신된 Rating
+            - next_me : User의 갱신된 Rating
+        '''
+        game_pecent = win_rate(p_op, p_me)
+        next_op = p_op + K*(result - game_pecent)
+        next_me = p_me - K*(result + game_pecent)
+        return next_op, next_me
+
+    # 하나의 row는 하나의 경기인 셈.
+    for i in range(elo_df.shape[0]):
+        op, me, result = elo_df.iloc[i]
+        student_rate[op], problem_rate[me] = changed_score(K,student_rate[op], problem_rate[me], result)
+
+    problem_df = pd.DataFrame.from_dict(data=problem_rate, orient='index').rename(columns={0:'problem_rate'})
+    student_df = pd.DataFrame.from_dict(data=student_rate, orient='index').rename(columns={0:'student_rate'})
+
+    df['student_rate'] = df.userID.apply(lambda x:student_rate[x])
+    df['problem_rate'] = df.assessmentItemID.apply(lambda x:problem_rate[x])
+    df['log_student_rate'] = df.student_rate.apply(lambda x:log(x))
+
+    def rate(arr):  # 수능 등급 기준과 동일하게 0.5시그마 기준으로 1~9등급 나누기. 단, 실력이 좋으면 9등급.
+        m, std = arr.mean(), arr.std()
+        tarr = (((arr - m) / std + 1.75) * 2).astype(int)
+        return tarr.apply(lambda x : min(max(x,1), 9))
+
+    #학생별로 문제를 푼 수가 달라서 학생만 모아둔 df를 따로 관리하여 추가
+    problem_df['problem_grade'] = rate(problem_df['problem_rate'])
+    student_df['student_grade'] = rate(student_df['student_rate'])
+    df = pd.merge(df, problem_df, how='left', on='problem_rate')
+    df = pd.merge(df, student_df, how='left', on='student_rate')
+
     return df
