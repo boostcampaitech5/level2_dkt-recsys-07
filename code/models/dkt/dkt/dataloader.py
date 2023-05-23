@@ -296,6 +296,25 @@ class Preprocess:
         df = pd.merge(df, problem_df, how='left', on='problem_rate')
         df = pd.merge(df, student_df, how='left', on='student_rate')
 
+        # Elo의 log값이 실력에 선형적이므로 log를 씌운 값을 이용한다
+        df['log_problem_rate'] = np.log10(df.problem_rate)
+
+        # log값의 평균으로 df 생성
+        test_grade_np = rate(df.groupby(['testId']).log_problem_rate.mean())
+        test_grade_df = pd.DataFrame(test_grade_np).reset_index()
+        test_grade_df.columns = ['testId', 'test_grade']
+        knowledge_grade_np = rate(df.groupby(['KnowledgeTag']).log_problem_rate.mean())
+        knowledge_grade_df = pd.DataFrame(knowledge_grade_np).reset_index()
+        knowledge_grade_df.columns = ['KnowledgeTag', 'knowledge_grade']
+
+        # merge
+        df = df.merge(test_grade_df, how='left', on='testId')
+        df = df.merge(knowledge_grade_df, how='left', on='KnowledgeTag')
+
+        # 사용하지 않는 column 삭제
+        df.drop('log_problem_rate', axis=1, inplace=True)
+
+        
         return df
 
     def load_data_from_file(self, file_name: str, is_train: bool = True) -> np.ndarray:
