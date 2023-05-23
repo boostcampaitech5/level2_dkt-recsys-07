@@ -69,3 +69,4 @@ train = pd.merge(train, student_df, how='left', on='student_rate')
 # test['problem_rate'] = test.assessmentItemID.apply(lambda x:problem_rate[x])
 # test = pd.merge(test, problem_df, how='left', on='problem_rate')
 # test = pd.merge(test, student_df, how='left', on='student_rate')
+
