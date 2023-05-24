@@ -314,13 +314,13 @@ class Preprocess:
         # 사용하지 않는 column 삭제
         df.drop('log_problem_rate', axis=1, inplace=True)
 
-        
+
         return df
 
     def load_data_from_file(self, file_name: str, is_train: bool = True) -> np.ndarray:
         csv_file_path = os.path.join(self.args.data_dir, file_name)
         df = pd.read_csv(csv_file_path)  # , nrows=100000)
-        # df = self.__feature_engineering(df)
+        df = self.__feature_engineering(df)
         df = self.__preprocessing(df, is_train)
 
         # 추후 feature를 embedding할 시에 embedding_layer의 input 크기를 결정할때 사용

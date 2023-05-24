@@ -1,6 +1,6 @@
 import math
 import os
-
+import time
 import numpy as np
 import torch
 from torch import nn
@@ -158,13 +158,22 @@ def inference(args, test_data: np.ndarray, model: nn.Module) -> None:
         preds = preds.cpu().detach().numpy()
         total_preds += list(preds)
 
-    write_path = os.path.join(args.output_dir, "submission.csv")
+    # SAVE OUTPUT
+    output_dir = 'output/'
+    now = time.localtime()
+    now_date = time.strftime('%Y%m%d', now)
+    now_hour = time.strftime('%X', now)
+    save_time = now_date + '_' + now_hour.replace(':', '')
+
+    fname = '{}_{}.csv'.format(save_time,args.model)
+    write_path = os.path.join(args.output_dir, fname)
     os.makedirs(name=args.output_dir, exist_ok=True)
     with open(write_path, "w", encoding="utf8") as w:
         w.write("id,prediction\n")
         for id, p in enumerate(total_preds):
             w.write("{},{}\n".format(id, p))
     logger.info("Successfully saved submission as %s", write_path)
+
 
 
 def get_model(args) -> nn.Module:
