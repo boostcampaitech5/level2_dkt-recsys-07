@@ -18,6 +18,12 @@ from .utils import get_logger, logging_conf
 
 logger = get_logger(logger_conf=logging_conf)
 
+fold_case = {
+    0: 'default',
+    1: 'kfold',
+    2: 'stratified',
+    3: 'tscv'
+}
 
 def run(args,
         train_data: np.ndarray,
@@ -62,7 +68,7 @@ def run(args,
             save_checkpoint(state={"epoch": epoch + 1,
                                    "state_dict": model_to_save.state_dict()},
                             model_dir=args.model_dir,
-                            model_filename= "best_model.pt" if args.kfold == 0 else f"best_model_{fold}fold.pt")
+                            model_filename= f"best_model_{fold_case[args.kfold]}.pt" if args.kfold == 0 else f"best_model_{args.model}_{fold_case[args.kfold]}_{fold}fold.pt")
             early_stopping_counter = 0
         else:
             early_stopping_counter += 1

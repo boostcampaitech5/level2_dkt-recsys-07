@@ -62,7 +62,8 @@ def parse_args():
         "--scheduler", default="plateau", type=str, help="scheduler type"
     )
     # Kfold Options
-    parser.add_argument("--kfold", default=1, type=int, help="stratified kfold: 2, kfold: 1, default: 0")
+    parser.add_argument("--kfold", default=0, type=int, help="default:0 / kfold:1 / stratified:2 / tscv:3")
+    parser.add_argument("--kfold_key", default=0, type=str, help="userID: 0 / Timestamp: 1")
     parser.add_argument("--n_splits", default=5, type=int, help="the number of fold")
 
     args = parser.parse_args()
