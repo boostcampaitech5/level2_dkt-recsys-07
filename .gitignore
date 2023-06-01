@@ -1,0 +1,6 @@
+data/
+mission/
+wandb/
+run.log
+__pycache__/
+outputs/
