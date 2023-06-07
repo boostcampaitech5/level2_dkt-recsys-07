@@ -34,14 +34,14 @@
 3. Graph 기반 모델 활용
 
 ## 프로젝트 수행 절차 및 방법
-![image](https://github.com/boostcampaitech5/level2_dkt-recsys-07/assets/46878927/d8eafa74-aee9-4c2c-8313-d650ab22fe27)
+![image](./images/report1.png)
 
 ## 프로젝트 수행 결과
-![image](https://github.com/boostcampaitech5/level2_dkt-recsys-07/assets/46878927/8d473d61-540d-4192-bbcb-a246df6a430a)
+![image](./images/report2.png)
 
-![image](https://github.com/boostcampaitech5/level2_dkt-recsys-07/assets/46878927/b07f9ead-f12f-469a-81e9-90ef70e40d44)
+![image](./images/report3.png)
 
 ### 최종 순위
 - Private 2위 (AUC: 0.8579, ACC: 0.7903)
 
-![image](https://github.com/boostcampaitech5/level2_dkt-recsys-07/assets/46878927/3ae09afe-6480-4288-9d52-0ced0678248f)
+![image](./images/report4.png)
